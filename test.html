@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monad MCP Server Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        button { padding: 8px 16px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Monad MCP Server Test Tool</h1>
+
+    <div class="section">
+        <h2>Server Health</h2>
+        <button onclick="testHealth()">Check Health</button>
+        <pre id="healthResult"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Network Status</h2>
+        <button onclick="getNetworkStatus()">Get Status</button>
+        <pre id="statusResult"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Check Balance</h2>
+        <input type="text" id="balanceAddress" placeholder="Enter address">
+        <button onclick="getBalance()">Get Balance</button>
+        <pre id="balanceResult"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Send Transaction</h2>
+        <input type="text" id="txTo" placeholder="To address">
+        <input type="text" id="txValue" placeholder="Value in ETH">
+        <input type="text" id="txData" placeholder="Data (optional)">
+        <button onclick="sendTransaction()">Send Transaction</button>
+        <pre id="txResult"></pre>
+    </div>
+
+    <script>
+        const apiBase = 'http://localhost:3000';
+
+        async function testHealth() {
+            const result = document.getElementById('healthResult');
+            try {
+                const response = await fetch(`${apiBase}/health`);
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getNetworkStatus() {
+            const result = document.getElementById('statusResult');
+            try {
+                const response = await fetch(`${apiBase}/api/status`);
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getBalance() {
+            const address = document.getElementById('balanceAddress').value;
+            const result = document.getElementById('balanceResult');
+            
+            if (!address) {
+                result.textContent = 'Please enter an address';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${apiBase}/api/balance/${address}`);
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function sendTransaction() {
+            const to = document.getElementById('txTo').value;
+            const value = document.getElementById('txValue').value;
+            const data = document.getElementById('txData').value || '0x';
+            const result = document.getElementById('txResult');
+            
+            if (!to || !value) {
+                result.textContent = 'Please enter to address and value';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${apiBase}/api/transaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ to, value, data })
+                });
+                const responseData = await response.json();
+                result.textContent = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
